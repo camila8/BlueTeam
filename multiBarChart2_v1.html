@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+    <script src="lib/stream_layers.js"></script>
+
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
+        svg {
+            display: block;
+        }
+        html, body, #test1, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div id="test1">
+    <svg></svg>
+</div>
+
+<script>
+
+d3.csv("EC.csv", function(error,data) {
+    if (error) throw error;
+// Compute the series names ("y1", "y2", etc.) from the loaded CSV.
+    var seriesNames = d3.keys(data[0])
+      .filter(function(d) { return d["Low SES, Low Arts"] + "," + d["Low SES, High Arts"] + "," + d["Overall Sample"] + "," + d["High SES, Low Arts"]
+         + "," + d["High SES, High Arts"] + "</br>" })
+      .sort();
+
+  // Map the data to an array of arrays of {x, y} tuples.
+    var series = seriesNames.map(function(series) {
+        return data.map(function(d) {
+        return {x: +d.x, y: +d[series]};
+    });
+  });
+    //var test_data = stream_layers(3,128,.1).map(function(data, i) {
+      // return {
+        //    key: (i == 1) ? 'Non-stackable Stream' + i: 'Stream' + i,
+          //  nonStackable: (i == 1),
+            //values: data
+       //};
+//d3.csv("EC.csv", function(data){
+    
+    
+   //Add data to the graph and call enter.
+   //var dataEnter = d3.select("body").selectAll("p").data(data).enter();
+   
+   //dataEnter.append("span").html(function(d)
+   //{
+    //return d["Low SES, Low Arts"] + "," + d["Low SES, High Arts"] + "," + d["Overall Sample"] + "," + d["High SES, Low Arts"]
+      //          + "," + d["High SES, High Arts"] + "</br>";
+   //});
+   // var headers = d3.keys(data[0]).filter(function(key) { return key });
+    
+    //data.forEach(function(d) {
+      //  d.heads = headers.map(function(name) { return {name: name, value: +d[name]}; });
+    //});
+    
+    nv.addGraph({
+        generate: function() {
+            var width = nv.utils.windowSize().width,
+                height = nv.utils.windowSize().height;
+
+            var chart = nv.models.multiBarChart()
+                .width(width)
+                .height(height)
+                .stacked(true)
+                ;
+
+            chart.dispatch.on('renderEnd', function(){
+                console.log('Render Complete');
+            });
+
+            var svg = d3.select('#test1 svg').datum(series);
+            console.log('calling chart');
+            svg.transition().duration(0).call(chart);
+
+            return chart;
+        },
+        callback: function(graph) {
+            nv.utils.windowResize(function() {
+                var width = nv.utils.windowSize().width;
+                var height = nv.utils.windowSize().height;
+                graph.width(width).height(height);
+
+                d3.select('#test1 svg')
+                    .attr('width', width)
+                    .attr('height', height)
+                    .transition().duration(0)
+                    .call(graph);
+
+            });
+        }
+    });
+});
+</script>
+</body>
+</html>
